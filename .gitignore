@@ -1,0 +1,7 @@
+# Files
+config/sample_sheet.yaml
+config/pipeline_log.yaml
+
+# Folders
+out/
+.snakemake/

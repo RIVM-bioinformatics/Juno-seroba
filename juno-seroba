@@ -1,0 +1,12 @@
+# Wrapper for serotype_pneumoniae.py
+
+# Create/update necessary environments
+conda env update -f envs/mamba.yaml
+conda activate mamba
+mamba env update -f envs/master_env.yaml
+conda activate seroba_master
+
+# Run the pipeline
+python serotype_pneumonieae.py ${@}
+
+
