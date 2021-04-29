@@ -79,6 +79,7 @@ def main(args):
                         workdir=pathlib.Path(__file__).parent.absolute(),
                         config={"out": str(args.output), "sample_sheet": "config/sample_sheet.yaml"},
                         cores=resources['cores'],
+                        nodes=resources['cores'],
                         use_conda=True,
                         conda_frontend="mamba",
                         dryrun=args.dryrun,
