@@ -15,13 +15,12 @@ rule seroba:
     threads: config["threads"]["seroba"]
     resources: mem_mb=config["mem_mb"]["seroba"]
     params:
-        min_cov = 20,
-        seroba_db = "/mnt/db/seroba_db/database"
+        min_cov = config["min_cov"],
+        seroba_db = config["db_dir"]
     log:
         OUT + "/log/serotype/{sample}_de_novo_assembly.log"
     shell:
         """
-# TODO: Add coverage and db to config Coverage 20 is the default in repo
 rm -rf {wildcards.sample} 
 OUTPUT_DIR=$(dirname {output})
 mkdir -p $OUTPUT_DIR

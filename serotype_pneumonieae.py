@@ -44,10 +44,10 @@ def get_pipeline_log(filename):
 
     pipeline_log = {}
     pipeline_log['timestamp'] = str(datetime.now())
-    pipeline_log['server_host'] = subprocess.check_output('hostname', shell = True)
+    pipeline_log['server_host'] = str(subprocess.check_output('hostname', shell = True))
     pipeline_log['pipeline_run_id'] = uuid4().hex
     try:
-        pipeline_log['repo_version'] = subprocess.check_output('git log -n 1 --pretty=format:"%H"', shell = True)
+        pipeline_log['repo_version'] = str(subprocess.check_output('git log -n 1 --pretty=format:"%H"', shell = True))
     except subprocess.CalledProcessError:
         pipeline_log['repo_version'] = "NA"
 
@@ -77,7 +77,10 @@ def main(args):
     resources = get_resources(args.cores, args.queue)
     snakemake.snakemake("Snakefile",
                         workdir=pathlib.Path(__file__).parent.absolute(),
-                        config={"out": str(args.output), "sample_sheet": "config/sample_sheet.yaml"},
+                        config={"out": str(args.output), 
+                                "sample_sheet": "config/sample_sheet.yaml",
+                                "db_dir": str(args.dbdir),
+                                "min_cov": int(args.mincov)},
                         cores=resources['cores'],
                         nodes=resources['cores'],
                         use_conda=True,
@@ -108,6 +111,24 @@ if __name__ == '__main__':
         required=False,
         metavar="DIR",
         help="Path to desired output directory. If it does not exist, it will be created. If non is given the default will be an output directory in the main pipeline folder."
+    )
+    args.add_argument(
+        "-m",
+        "--mincov",
+        type=int,
+        default=20,
+        required=False,
+        metavar="INT",
+        help="Minimum coverage for serotyping with Seroba."
+    )
+    args.add_argument(
+        "-d",
+        "--dbdir",
+        type=pathlib.Path,
+        default="/mnt/db/seroba_db/database",
+        required=False,
+        metavar="DIR",
+        help="Directory where the Seroba database is located. Default is /mnt/db/seroba_db/database where we have a copy at the RIVM."
     )
     args.add_argument(
         "-q",

@@ -93,17 +93,23 @@ onstart:
         done
     """)
 
-#onerror:
-#   shell("""""")
+onerror:
+   shell("""
+   echo "Something went wrong while running this pipeline. Please check the error messages and log files"
+   """)
 
 
 onsuccess:
     shell("""
         rm -rf temp.*
         echo -e "\tGenerating Snakemake report..."
-        snakemake --config out={OUT} sample_sheet="config/sample_sheet.yaml" --configfile "config/pipeline_parameters.yaml" --cores 1 --unlock
-        snakemake --config out={OUT} sample_sheet="config/sample_sheet.yaml" --configfile "config/pipeline_parameters.yaml" --cores 1 --report '{OUT}/audit_trail/snakemake_report.html'
-        echo -e "Finished"
+        snakemake --config out={OUT} sample_sheet="config/sample_sheet.yaml" min_cov=20 db_dir=/mnt/db/seroba_db/database --configfile "config/pipeline_parameters.yaml" --cores 1 --unlock
+        snakemake --config out={OUT} sample_sheet="config/sample_sheet.yaml" min_cov=20 db_dir=/mnt/db/seroba_db/database --configfile "config/pipeline_parameters.yaml" --cores 1 --report '{OUT}/audit_trail/snakemake_report.html'
+        if [ $? -eq 0 ]; then
+            echo -e "Pipeline finished successfully!"
+        else
+            echo "The Snakemake report could not be generated."
+        fi
     """)
 
 
