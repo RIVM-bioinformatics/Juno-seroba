@@ -23,9 +23,11 @@ threads:
     multiqc: 1
     fastqc: 1
     seroba: 1
+    download_db: 1
 
 mem_mb:
     trimmomatic: 12000
     multiqc: 8000
     fastqc: 8000
     seroba: 8000
+    download_db: 8000

@@ -103,8 +103,8 @@ onsuccess:
     shell("""
         rm -rf temp.*
         echo -e "\tGenerating Snakemake report..."
-        snakemake --config out={OUT} sample_sheet="config/sample_sheet.yaml" min_cov=20 db_dir=/mnt/db/seroba_db/database --configfile "config/pipeline_parameters.yaml" --cores 1 --unlock
-        snakemake --config out={OUT} sample_sheet="config/sample_sheet.yaml" min_cov=20 db_dir=/mnt/db/seroba_db/database --configfile "config/pipeline_parameters.yaml" --cores 1 --report '{OUT}/audit_trail/snakemake_report.html'
+        snakemake --config out={OUT} sample_sheet="config/sample_sheet.yaml" min_cov=20 seroba_db=/mnt/db/seroba_db/database kmer_size=71 --configfile "config/pipeline_parameters.yaml" --cores 1 --unlock
+        snakemake --config out={OUT} sample_sheet="config/sample_sheet.yaml" min_cov=20 seroba_db=/mnt/db/seroba_db/database kmer_size=71 --configfile "config/pipeline_parameters.yaml" --cores 1 --report '{OUT}/audit_trail/snakemake_report.html'
         if [ $? -eq 0 ]; then
             echo -e "Pipeline finished successfully!"
         else
@@ -127,4 +127,5 @@ rule all:
         expand(OUT + "/clean_fastq/{sample}_{read}.fastq.gz", sample = SAMPLES, read = ['pR1', 'pR2', 'uR1', 'uR2']),
         expand(OUT + "/qc_clean_fastq/{sample}_{read}_fastqc.zip", sample = SAMPLES, read = ['pR1', 'pR2']),
         expand(OUT + "/serotype/{sample}/pred.tsv", sample = SAMPLES),   
+        OUT + "/audit_trail/seroba_db.yaml",
         OUT + "/multiqc/multiqc.html"

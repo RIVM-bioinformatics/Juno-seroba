@@ -67,19 +67,21 @@ def get_resources(cores, queue):
     return resources
 
 
-# def check_databases(db_path):
-#     assert db_path.is_dir(), "The provided path to the database ({})does not exist. Please make sure to provide an existing path.".format(str(db_path))
-
+def check_databases(db_path):
+    if not db_path.is_dir():
+        os.makedirs(db_path)
 
 def main(args):
     get_pipeline_log("config/pipeline_log.yaml")
     make_sample_sheet(args.input, "config/sample_sheet.yaml")
     resources = get_resources(args.cores, args.queue)
+    check_databases(args.serobadb)
     snakemake.snakemake("Snakefile",
                         workdir=pathlib.Path(__file__).parent.absolute(),
                         config={"out": str(args.output), 
                                 "sample_sheet": "config/sample_sheet.yaml",
-                                "db_dir": str(args.dbdir),
+                                "seroba_db": str(args.serobadb),
+                                "kmer_size": int(args.kmersize),
                                 "min_cov": int(args.mincov)},
                         cores=resources['cores'],
                         nodes=resources['cores'],
@@ -90,13 +92,17 @@ def main(args):
                         keepgoing=True,
                         printshellcmds=True,
                         unlock=args.unlock,
+                        force_incomplete=args.rerunincomplete,
                         configfiles=["config/pipeline_parameters.yaml"],
                         drmaa=" -q bio -n {threads} -o %s/log/drmaa/{name}_{wildcards}_{jobid}.out -e %s/log/drmaa/{name}_{wildcards}_{jobid}.err -R \"span[hosts=1]\" -R \"rusage[mem={resources.mem_mb}]\" " % (str(args.output), str(args.output))
                         )
     
 
 if __name__ == '__main__':
-    args = argparse.ArgumentParser()
+    args = argparse.ArgumentParser(
+        prog="bash juno-seroba",
+        description="Juno-seroba: a pipeline to serotype S. pneumoniae samples.",
+    )
     args.add_argument( 
         "input",
         type=pathlib.Path, 
@@ -119,16 +125,25 @@ if __name__ == '__main__':
         default=20,
         required=False,
         metavar="INT",
-        help="Minimum coverage for serotyping with Seroba."
+        help="Minimum coverage for serotyping with Seroba. Default (as suggested by seroba): 20."
     )
     args.add_argument(
         "-d",
-        "--dbdir",
+        "--serobadb",
         type=pathlib.Path,
-        default="/mnt/db/seroba_db/database",
+        default="/mnt/db/seroba_db/",
         required=False,
         metavar="DIR",
-        help="Directory where the Seroba database is located. Default is /mnt/db/seroba_db/database where we have a copy at the RIVM."
+        help="Directory where the Seroba database is located. Default is /mnt/db/seroba_db/ where we have a copy at the RIVM."
+    )
+    args.add_argument(
+        "-k",
+        "--kmersize",
+        type=int,
+        default=71,
+        required=False,
+        metavar="INT",
+        help="Kmer size for the database. Default (as suggested by seroba): 71."
     )
     args.add_argument(
         "-q",
@@ -159,5 +174,10 @@ if __name__ == '__main__':
         "--dryrun",
         action='store_true',
         help="Dry run printing steps to be taken in the pipeline without actually running it (passed to snakemake)."
+    )
+    args.add_argument(
+        "--rerunincomplete",
+        action='store_true',
+        help="Re-run output files that are marked as incomplete."
     )
     main(args.parse_args())
